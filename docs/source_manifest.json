@@ -1,0 +1,19 @@
+{
+  "input": "C:\\Users\\jujin\\Downloads\\UserBehavior.csv.zip",
+  "zip_entry": "UserBehavior.csv",
+  "seed": 42,
+  "total_rows": 100150807,
+  "sample_rows": 1000000,
+  "smoke_rows": 10000,
+  "generated_at": "2026-08-11T18:04:12.592030+08:00",
+  "outputs": {
+    "development_sample": "C:\\job1\\ecommerce-warehouse-ai\\data\\sample\\user_behavior_1m.csv",
+    "smoke_sample": "C:\\job1\\ecommerce-warehouse-ai\\data\\sample\\user_behavior_10k.csv",
+    "manual_check": "C:\\job1\\ecommerce-warehouse-ai\\data\\sample\\manual_check_20.csv",
+    "profile": "C:\\job1\\ecommerce-warehouse-ai\\docs\\profile.md"
+  },
+  "sha256": {
+    "development_sample": "b5777d3a82cb3194384f3aeefc3f631fea4283989d5b15c5bce4cb9fc8d14653",
+    "smoke_sample": "6e0a95b8b0830b5631200d930927c88b6772fd28150bc9ed3532478dad459462"
+  }
+}

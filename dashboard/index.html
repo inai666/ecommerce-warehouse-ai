@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>电商用户行为分析看板</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f6f8;
+      --surface: #ffffff;
+      --surface-alt: #f8fafb;
+      --text: #1d2630;
+      --muted: #68737f;
+      --border: #d9e0e6;
+      --grid: #e7ecef;
+      --teal: #087f78;
+      --blue: #2468a2;
+      --gold: #b7791f;
+      --red: #b4443d;
+      --green: #3f7d4e;
+      --purple: #76549a;
+      --nav: #18232d;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: "Segoe UI", "Microsoft YaHei", sans-serif; letter-spacing: 0; }
+    button { font: inherit; }
+    .app { min-height: 100vh; }
+    header { min-height: 62px; background: var(--nav); color: #fff; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 10px 24px; }
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .mark { width: 34px; height: 34px; display: grid; place-items: center; background: #16a39a; border-radius: 6px; font-weight: 700; }
+    .brand h1 { font-size: 18px; font-weight: 500; margin: 0; }
+    .brand p { font-size: 12px; color: #bdc8d1; margin: 2px 0 0; }
+    .status { color: #d9e5e8; font-size: 12px; text-align: right; }
+    .tabs { display: flex; gap: 4px; padding: 0 24px; background: var(--surface); border-bottom: 1px solid var(--border); }
+    .tab { border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--muted); padding: 13px 16px 10px; cursor: pointer; }
+    .tab.active { color: var(--teal); border-bottom-color: var(--teal); font-weight: 500; }
+    main { max-width: 1440px; margin: 0 auto; padding: 18px 24px 32px; }
+    .view { display: none; }
+    .view.active { display: block; }
+    .section-head { display: flex; justify-content: space-between; align-items: end; gap: 16px; margin: 0 0 12px; }
+    .section-head h2 { margin: 0; font-size: 17px; font-weight: 500; }
+    .section-head p { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+    .metrics { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; }
+    .metric { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 13px 14px; min-width: 0; }
+    .metric .label { color: var(--muted); font-size: 12px; }
+    .metric .value { font-size: 23px; font-weight: 500; margin-top: 5px; font-variant-numeric: tabular-nums; }
+    .metric .context { color: var(--muted); font-size: 11px; margin-top: 3px; }
+    .layout-2 { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(300px, 1fr); gap: 14px; margin-bottom: 16px; }
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px; min-width: 0; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+    .panel h3 { margin: 0; font-size: 14px; font-weight: 500; }
+    .panel-note { color: var(--muted); font-size: 11px; }
+    .chart { min-height: 270px; position: relative; }
+    svg { width: 100%; display: block; overflow: visible; }
+    .axis { stroke: #81909c; stroke-width: 1; }
+    .grid { stroke: var(--grid); stroke-width: 1; }
+    .axis-label { fill: var(--muted); font-size: 11px; }
+    .chart-label { fill: var(--text); font-size: 11px; }
+    .legend { display: flex; flex-wrap: wrap; gap: 12px; color: var(--muted); font-size: 11px; }
+    .legend span { display: inline-flex; align-items: center; gap: 5px; }
+    .swatch { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+    .funnel { display: grid; gap: 12px; padding: 8px 0 2px; }
+    .funnel-row { display: grid; grid-template-columns: 110px 1fr 84px; align-items: center; gap: 10px; font-size: 12px; }
+    .funnel-track { height: 26px; background: var(--surface-alt); border: 1px solid var(--border); }
+    .funnel-bar { height: 100%; background: var(--teal); min-width: 3px; }
+    .funnel-value { text-align: right; font-variant-numeric: tabular-nums; }
+    .rate-list { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); display: grid; gap: 7px; }
+    .rate-item { display: flex; justify-content: space-between; font-size: 12px; }
+    .rate-item strong { font-weight: 500; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { padding: 8px 9px; border-bottom: 1px solid var(--grid); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    th { color: var(--muted); font-weight: 500; background: var(--surface-alt); }
+    th:first-child, td:first-child { text-align: left; }
+    .heat { color: var(--text); text-align: center; }
+    .seg-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(280px, .85fr); gap: 14px; }
+    .bar-list { display: grid; gap: 10px; }
+    .bar-row { display: grid; grid-template-columns: 180px 1fr 58px; align-items: center; gap: 8px; font-size: 12px; }
+    .bar-track { height: 18px; background: var(--surface-alt); border: 1px solid var(--border); }
+    .bar-fill { height: 100%; background: var(--blue); }
+    .callout { border-left: 3px solid var(--gold); padding: 10px 12px; background: #fffaf0; font-size: 12px; line-height: 1.6; color: #5c4a2d; margin-top: 14px; }
+    .segmented { display: inline-flex; border: 1px solid var(--border); border-radius: 5px; overflow: hidden; }
+    .segmented button { border: 0; border-right: 1px solid var(--border); padding: 6px 10px; background: var(--surface); color: var(--muted); cursor: pointer; font-size: 12px; }
+    .segmented button:last-child { border-right: 0; }
+    .segmented button.active { background: var(--nav); color: #fff; }
+    .rank { display: inline-grid; place-items: center; width: 22px; height: 22px; background: var(--surface-alt); border: 1px solid var(--border); border-radius: 4px; }
+    .warning { color: var(--red); font-weight: 500; }
+    footer { color: var(--muted); font-size: 11px; text-align: center; padding: 8px 24px 24px; }
+    @media (max-width: 900px) {
+      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .layout-2, .seg-grid { grid-template-columns: 1fr; }
+      .status { display: none; }
+    }
+    @media (max-width: 560px) {
+      header { padding: 10px 14px; }
+      .brand p { display: none; }
+      .tabs { padding: 0 8px; overflow-x: auto; }
+      .tab { padding-inline: 11px; white-space: nowrap; }
+      main { padding: 14px 10px 24px; }
+      .metrics { grid-template-columns: 1fr 1fr; }
+      .metric .value { font-size: 19px; }
+      .funnel-row { grid-template-columns: 92px 1fr 70px; }
+      .bar-row { grid-template-columns: 130px 1fr 52px; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand"><div class="mark">EC</div><div><h1>电商用户行为分析看板</h1><p>Hadoop / Hive 离线数仓 · 用户级序列样本与 1M 趋势样本</p></div></div>
+    <div class="status">Asia/Shanghai · 2017-11-25 至 2017-12-03<br>ADS 导出校验通过</div>
+  </header>
+  <nav class="tabs" aria-label="看板视图">
+    <button class="tab active" data-view="overview">经营概览</button>
+    <button class="tab" data-view="users">留存与用户</button>
+    <button class="tab" data-view="catalog">商品与类目</button>
+  </nav>
+  <main>
+    <section id="overview" class="view active">
+      <div class="section-head"><div><h2>经营概览</h2><p>1M 事件样本趋势，用户级样本用于序列专题</p></div></div>
+      <div class="metrics" id="overviewMetrics"></div>
+      <div class="layout-2">
+        <div class="panel"><div class="panel-head"><div><h3>每日活跃与行为趋势</h3><div class="panel-note">事件数与活跃用户数</div></div><div class="legend"><span><i class="swatch" style="background:var(--teal)"></i>事件数</span><span><i class="swatch" style="background:var(--blue)"></i>活跃用户</span></div></div><div id="trendChart" class="chart"></div></div>
+        <div class="panel"><div class="panel-head"><h3>严格行为漏斗</h3><div class="panel-note">同一用户 + 商品 + 时间顺序</div></div><div id="funnelChart"></div></div>
+      </div>
+      <div class="panel"><div class="panel-head"><h3>每日指标明细</h3><div class="panel-note">购买用户率最高：2017-11-27，2.5585%</div></div><div class="table-wrap"><table id="dailyTable"></table></div></div>
+    </section>
+
+    <section id="users" class="view">
+      <div class="section-head"><div><h2>留存与用户价值</h2><p>用户级固定哈希样本，完整保留 9,660 个入样用户的行为序列</p></div></div>
+      <div class="seg-grid">
+        <div class="panel"><div class="panel-head"><h3>Cohort 留存矩阵</h3><div class="panel-note">指定第 N 天活跃，不要求连续活跃</div></div><div class="table-wrap"><table id="retentionTable"></table></div><div class="callout">较晚 cohort 没有完整的第 7 天观察窗口，D7 为 0 属于右删失，不能解释为真实七日留存为 0。</div></div>
+        <div class="panel"><div class="panel-head"><h3>RFV 用户分群</h3><div class="panel-note">V 为行为价值分，不是消费金额</div></div><div id="rfvBars" class="bar-list"></div><div class="callout">价值分权重：pv=1、fav=2、cart=3、buy=5。分群规则透明可复算，不代表行业标准。</div></div>
+      </div>
+    </section>
+
+    <section id="catalog" class="view">
+      <div class="section-head"><div><h2>商品与类目</h2><p>同时观察流量、意向、购买事件与购买用户</p></div><div class="segmented" aria-label="商品榜单模式"><button class="active" data-mode="seller">热销商品</button><button data-mode="risk">高流量无购买</button><button data-mode="category">热门类目</button></div></div>
+      <div class="metrics" id="catalogMetrics"></div>
+      <div class="panel"><div class="panel-head"><h3 id="rankTitle">热销商品 Top 20</h3><div class="panel-note" id="rankNote">按购买事件和购买用户排序</div></div><div class="table-wrap"><table id="rankTable"></table></div></div>
+    </section>
+  </main>
+  <footer>数据来源：Taobao UserBehavior · ODS/DWD/DWS/ADS 分层计算 · 指标仅用于教学项目与方法验证</footer>
+</div>
+<script>
+const daily = [
+['2017-11-25',104008,88014,82309,3880,93408,2998,5628,1974,1960,1.1817,2.2269],['2017-11-26',106758,90513,84442,3999,95966,3097,5659,2036,2020,1.1795,2.2317],['2017-11-27',101072,86338,81138,3994,90531,2942,5371,2228,2209,1.1707,2.5585],['2017-11-28',98686,84655,80017,4029,88395,2937,5248,2106,2090,1.1657,2.4688],['2017-11-29',102440,87453,82219,4039,91778,2934,5525,2203,2186,1.1714,2.4996],['2017-11-30',104349,89158,82623,4002,93543,3042,5658,2106,2095,1.1704,2.3498],['2017-12-01',108486,92185,85865,4091,97088,3106,6182,2110,2091,1.1768,2.2683],['2017-12-02',137371,116832,106020,4312,123054,3908,7920,2489,2475,1.1758,2.1184],['2017-12-03',136259,115630,105346,4343,121965,3910,7749,2635,2611,1.1784,2.2581]
+];
+const retention = [['2017-11-25',6998,5483,5392,5295,6904,78.3510,77.0506,75.6645,98.6568],['2017-11-26',1493,955,972,980,1446,63.9652,65.1038,65.6397,96.8520],['2017-11-27',621,371,380,392,0,59.7424,61.1916,63.1240,null],['2017-11-28',281,194,181,186,0,69.0391,64.4128,66.1922,null],['2017-11-29',164,118,107,160,0,71.9512,65.2439,97.5610,null],['2017-11-30',100,96,98,95,0,96,98,95,null],['2017-12-01',2,1,2,0,0,50,100,0,null]];
+const rfv=[['CORE_VALUE',3580,207.1355],['ACTIVE_BUYER',2939,57.7523],['HIGH_INTENT_NON_BUYER',2541,100.8272],['GENERAL_ACTIVE',597,38.5812],['AT_RISK',2,17.5]];
+const funnel={pv:691122,intent:11101,buy:1023,pvUsers:9621,intentUsers:4910,buyUsers:865,pvi:1.6062,itb:9.2154,pvb:0.1480};
+const topItems = [[3122135,1516409,33,21,15,6,12,12,36.3636],[3964583,800581,48,30,36,3,9,9,18.75],[4219087,1787510,61,37,43,9,9,9,14.7541],[1944325,139590,31,10,21,1,9,2,29.0323],[4014543,3087458,49,32,33,8,8,5,16.3265],[257772,3848953,33,22,25,1,7,7,21.2121],[2127137,3231625,21,14,14,0,7,6,33.3333],[2964774,1265358,67,51,57,3,7,6,10.4478],[4401268,1265358,38,23,25,6,7,6,18.4211],[3015666,1973012,32,20,21,4,7,4,21.875],[1883768,1689352,36,25,26,3,7,3,19.4444],[940316,2612425,7,1,0,0,7,1,100],[3603903,2072473,16,1,8,1,7,1,43.75],[4157341,3901193,7,1,0,0,7,1,100],[191709,1349561,63,38,54,3,6,6,9.5238],[301639,2296439,16,11,9,1,6,6,37.5],[3033982,64179,24,15,16,2,6,6,25],[3101480,3248072,28,14,17,5,6,6,21.4286],[3237415,3231625,36,28,25,5,6,6,16.6667],[3599005,4392650,11,7,4,1,6,6,54.5455]];
+const noBuy = [[2331370,3607361,197,165,176,21],[3371523,1859277,176,133,175,1],[2367945,1859277,168,127,168,0],[1591862,1320293,167,127,167,0],[2818406,982926,180,159,158,22],[4649427,4756105,165,117,154,11],[4211339,4756105,158,128,151,7],[3920968,4756105,154,99,143,11],[2828948,4145813,123,87,116,7],[3563468,4801426,116,94,109,7],[1951985,2735466,116,96,108,8],[1434990,2096639,107,51,105,2],[3708121,4756105,107,65,101,6],[363858,2735466,109,84,96,13],[1223110,3607361,102,78,96,6],[3403645,3607361,103,74,91,12],[2678768,4358294,90,85,89,1],[1699547,154040,92,81,86,6],[250498,982926,93,74,85,8],[207994,4756105,91,65,83,8]];
+const categories=[[1464116,7875,1768,2557,6728,823,324,288,4.1143],[4145813,33842,3729,10583,30740,2782,320,287,.9456],[2735466,12723,2621,2969,11083,1341,299,251,2.3501],[2885642,10033,1541,4979,8972,791,270,237,2.6911],[4756105,46644,4042,9942,42963,3414,267,231,.5724],[982926,29723,3945,8691,27052,2407,264,224,.8882],[4801426,20181,3267,6417,18091,1843,247,213,1.2239],[4159072,2059,554,832,1672,201,186,165,9.0335],[4217906,9911,2003,3628,8796,946,169,145,1.7052],[3002561,16181,2620,5936,14632,1382,167,146,1.0321],[4357323,7523,1214,2716,6694,668,161,135,2.1401],[2640118,7633,1316,3086,6733,742,158,132,2.07],[903809,3901,949,1233,3390,362,149,124,3.8195],[4789432,3403,815,1407,2977,277,149,132,4.3785],[1320293,18660,3356,6921,17110,1406,144,128,.7717],[2465336,15801,2605,5979,14392,1272,137,123,.867],[149192,10904,1939,4173,9768,1013,123,102,1.128],[3607361,30924,3263,7024,29086,1717,121,96,.3913],[1879194,7999,1421,2618,7259,622,118,95,1.4752],[1299190,4864,1042,2207,4380,368,116,102,2.3849]];
+const fmt=n=>Number(n).toLocaleString('zh-CN');
+const metric=(label,value,context)=>`<div class="metric"><div class="label">${label}</div><div class="value">${value}</div><div class="context">${context}</div></div>`;
+
+document.getElementById('overviewMetrics').innerHTML = metric('有效事件','999,429','1M 样本，已隔离 571 条异常')+metric('有效用户','527,746','业务时间范围内去重')+metric('购买事件','19,887','占有效事件 1.990%')+metric('峰值日期','12 月 2 日','137,371 条有效事件')+metric('严格购买路径','1,023','同用户、同商品、顺序成立');
+document.getElementById('catalogMetrics').innerHTML = metric('有效商品','396,750','用户级序列样本')+metric('有效类目','5,788','异常时间已隔离')+metric('Top Seller','60','购买事件至少 5')+metric('高流量无购买','1,732','PV 至少 20 且购买为 0')+metric('指标质量','0 异常','行为分类与总量完全对账');
+
+function trend(){const el=document.getElementById('trendChart'),w=Math.max(520,el.clientWidth),h=270,p={l:58,r:18,t:14,b:42}; const max=Math.max(...daily.flatMap(d=>[d[1],d[2]]))*1.08; const x=i=>p.l+i*(w-p.l-p.r)/(daily.length-1); const y=v=>p.t+(max-v)*(h-p.t-p.b)/max; const path=idx=>daily.map((d,i)=>(i?'L':'M')+x(i)+','+y(d[idx])).join(' '); let s=`<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="每日事件和活跃用户趋势"><line class="axis" x1="${p.l}" y1="${h-p.b}" x2="${w-p.r}" y2="${h-p.b}"/>`;
+for(let i=0;i<5;i++){const v=max*i/4,yy=y(v);s+=`<line class="grid" x1="${p.l}" y1="${yy}" x2="${w-p.r}" y2="${yy}"/><text class="axis-label" x="${p.l-8}" y="${yy+4}" text-anchor="end">${Math.round(v/1000)}k</text>`} daily.forEach((d,i)=>{s+=`<text class="axis-label" x="${x(i)}" y="${h-15}" text-anchor="middle">${d[0].slice(5)}</text>`}); s+=`<path d="${path(1)}" fill="none" stroke="var(--teal)" stroke-width="2.5"/><path d="${path(2)}" fill="none" stroke="var(--blue)" stroke-width="2.5"/>`; daily.forEach((d,i)=>{s+=`<circle cx="${x(i)}" cy="${y(d[1])}" r="3" fill="var(--teal)"><title>${d[0]} 事件 ${fmt(d[1])}</title></circle><circle cx="${x(i)}" cy="${y(d[2])}" r="3" fill="var(--blue)"><title>${d[0]} 用户 ${fmt(d[2])}</title></circle>`}); el.innerHTML=s+'</svg>'}
+function funnelView(){const rows=[['浏览用户商品对',funnel.pv],['浏览后收藏/加购',funnel.intent],['意向后购买',funnel.buy]];document.getElementById('funnelChart').innerHTML=`<div class="funnel">${rows.map((r,i)=>`<div class="funnel-row"><span>${r[0]}</span><div class="funnel-track"><div class="funnel-bar" style="width:${Math.max(1.5,r[1]/funnel.pv*100)}%;background:${['var(--teal)','var(--gold)','var(--green)'][i]}"></div></div><span class="funnel-value">${fmt(r[1])}</span></div>`).join('')}</div><div class="rate-list"><div class="rate-item"><span>PV → 意向</span><strong>${funnel.pvi}%</strong></div><div class="rate-item"><span>意向 → 购买</span><strong>${funnel.itb}%</strong></div><div class="rate-item"><span>PV → 购买</span><strong>${funnel.pvb}%</strong></div></div>`}
+function dailyTable(){document.getElementById('dailyTable').innerHTML='<thead><tr><th>日期</th><th>事件</th><th>活跃用户</th><th>活跃商品</th><th>PV</th><th>收藏</th><th>加购</th><th>购买</th><th>购买用户率</th></tr></thead><tbody>'+daily.map(d=>`<tr><td>${d[0]}</td><td>${fmt(d[1])}</td><td>${fmt(d[2])}</td><td>${fmt(d[3])}</td><td>${fmt(d[5])}</td><td>${fmt(d[6])}</td><td>${fmt(d[7])}</td><td>${fmt(d[8])}</td><td>${d[11].toFixed(4)}%</td></tr>`).join('')+'</tbody>'}
+function retentionTable(){const color=v=>v==null?'transparent':`rgba(8,127,120,${.1+v/100*.55})`;document.getElementById('retentionTable').innerHTML='<thead><tr><th>Cohort</th><th>用户</th><th>D1</th><th>D2</th><th>D3</th><th>D7</th></tr></thead><tbody>'+retention.map(r=>`<tr><td>${r[0]}</td><td>${fmt(r[1])}</td>${[r[6],r[7],r[8],r[9]].map(v=>`<td class="heat" style="background:${color(v)}">${v==null?'观察不足':v.toFixed(2)+'%'}</td>`).join('')}</tr>`).join('')+'</tbody>'}
+function rfvBars(){const max=Math.max(...rfv.map(x=>x[1]));document.getElementById('rfvBars').innerHTML=rfv.map((r,i)=>`<div class="bar-row"><span>${r[0]}</span><div class="bar-track"><div class="bar-fill" style="width:${r[1]/max*100}%;background:${['var(--teal)','var(--blue)','var(--gold)','var(--purple)','var(--red)'][i]}"></div></div><strong>${fmt(r[1])}</strong></div>`).join('')}
+function rankTable(mode){let head,rows;if(mode==='seller'){head=['排名','商品 ID','类目 ID','事件','用户','意向','购买','购买用户','购买占比'];rows=topItems.map((r,i)=>[i+1,r[0],r[1],r[2],r[3],r[5],r[6],r[7],r[8].toFixed(2)+'%']);document.getElementById('rankTitle').textContent='热销商品 Top 20';document.getElementById('rankNote').textContent='按购买事件和购买用户排序'}else if(mode==='risk'){head=['排名','商品 ID','类目 ID','事件','用户','PV','意向','购买'];rows=noBuy.map((r,i)=>[i+1,r[0],r[1],r[2],r[3],r[4],r[5],0]);document.getElementById('rankTitle').textContent='高流量无购买候选';document.getElementById('rankNote').textContent='排查候选，不直接等同于商品问题'}else{head=['排名','类目 ID','事件','用户','商品','PV','意向','购买','购买用户','购买占比'];rows=categories.map((r,i)=>[i+1,...r]);document.getElementById('rankTitle').textContent='热门类目 Top 20';document.getElementById('rankNote').textContent='按购买事件排序'}document.getElementById('rankTable').innerHTML='<thead><tr>'+head.map(x=>`<th>${x}</th>`).join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map((x,i)=>`<td>${i===0?'<span class="rank">'+x+'</span>':typeof x==='number'?fmt(x):x}</td>`).join('')+'</tr>').join('')+'</tbody>'}
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tab,.view').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById(b.dataset.view).classList.add('active');if(b.dataset.view==='overview')trend()}));
+document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-mode]').forEach(x=>x.classList.remove('active'));b.classList.add('active');rankTable(b.dataset.mode)}));
+trend();funnelView();dailyTable();retentionTable();rfvBars();rankTable('seller');window.addEventListener('resize',()=>{if(document.getElementById('overview').classList.contains('active'))trend()});
+</script>
+</body>
+</html>

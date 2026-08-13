@@ -1,0 +1,24 @@
+# Raw and generated data
+data/raw/
+data/sample/*.csv
+data/sample/*.zip
+data/sample/*.parquet
+
+# Runtime artifacts
+logs/*
+!logs/.gitkeep
+*.log
+
+# Secrets and local environments
+.env
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+

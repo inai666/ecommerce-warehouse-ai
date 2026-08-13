@@ -1,0 +1,24 @@
+{
+  "input": "C:\\Users\\jujin\\Downloads\\UserBehavior.csv.zip",
+  "output": "C:\\job1\\ecommerce-warehouse-ai\\data\\sample\\user_sequence_1pct.csv",
+  "sampling_unit": "user_id",
+  "selection": "deterministic 64-bit mixed hash threshold",
+  "seed": 20260812,
+  "basis_points": 100,
+  "nominal_user_rate": 0.01,
+  "source_rows": 100150807,
+  "output_rows": 976621,
+  "selected_users": 9660,
+  "malformed_rows": 0,
+  "behavior_counts": {
+    "pv": 874671,
+    "fav": 27964,
+    "buy": 19258,
+    "cart": 54728
+  },
+  "min_event_ts": 1506851090,
+  "max_event_ts": 1792563297,
+  "sha256": "7d61da1c410720c3a3c31926f390c543e2e594761954abf6f80c045bf9c4c67f",
+  "elapsed_seconds": 327.27,
+  "generated_at": "2026-08-12T23:03:15.842222+08:00"
+}
