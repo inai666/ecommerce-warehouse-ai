@@ -11,8 +11,8 @@
 | 想了解的内容 | 入口 |
 |---|---|
 | 项目如何设计、遇到什么问题 | [工程复盘](docs/PROJECT_RETROSPECTIVE.md) |
-| 可直接用于简历的项目描述 | [简历项目描述](docs/RESUME_PROJECT.md) |
-| 面试常见追问与回答依据 | [面试答辩手册](docs/INTERVIEW_GUIDE.md) |
+| 项目描述 | [项目描述](docs/RESUME_PROJECT.md) |
+| 常见追问与回答依据 | [答辩手册](docs/INTERVIEW_GUIDE.md) |
 | 从环境验收到可视化的完整过程 | [20 个分步教程](docs/TUTORIAL_00_基线诊断与数据抽样.md) |
 | 最终交付物与结果验收 | [最终验收报告](docs/FINAL_ACCEPTANCE.md) |
 
@@ -100,8 +100,8 @@ sql/hive/        ODS/DWD/DWS/ADS 构建及验收 SQL
 ## 深入阅读
 
 - [工程复盘](docs/PROJECT_RETROSPECTIVE.md)
-- [简历项目描述](docs/RESUME_PROJECT.md)
-- [面试答辩手册](docs/INTERVIEW_GUIDE.md)
+- [项目描述](docs/RESUME_PROJECT.md)
+- [答辩手册](docs/INTERVIEW_GUIDE.md)
 - [环境清单](docs/environment_inventory.md)
 - [时区修复记录](docs/timezone_repair_results.md)
 - [完整教程](docs/TUTORIAL_00_基线诊断与数据抽样.md)
